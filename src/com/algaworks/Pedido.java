@@ -1,21 +1,37 @@
 package com.algaworks;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.algaworks.desconto.CalculadoraFaixaDesconto;
+
 public class Pedido {
 
-	private double valorTotal = 0;
-	private double desconto = 0;
 	
+	private List<ItemPedido> items = new ArrayList<>();
+	
+	private CalculadoraFaixaDesconto calculadoraFaixaDesconto;
+	
+	public Pedido(CalculadoraFaixaDesconto calculadoraFaixaDesconto) {
+		this.calculadoraFaixaDesconto = calculadoraFaixaDesconto;
+	}
+
 	public void adicionarItem(ItemPedido itemPedido) {
-		valorTotal = itemPedido.getValorUnitario() * itemPedido.getQuantidade();
+		validarQuantidadeItens(itemPedido);
+		items.add(itemPedido);
+	}
+
+	private void validarQuantidadeItens(ItemPedido itemPedido) {
+		if(itemPedido.getQuantidade() < 0)
+			throw new QuantidadeItenInvalidaException();
+	}
+	
+	public ResumoPedido resumo(){
 		
-	}
-
-	public double valorTotal() {
-		return valorTotal;
-	}
-
-	public double desconto() {
-		return desconto;
+		double valorTotal = items.stream().mapToDouble(i -> i.getValorUnitario() * i.getQuantidade()).sum();
+		double desconto = calculadoraFaixaDesconto.desconto(valorTotal);
+		
+		return new ResumoPedido(valorTotal, desconto);
 	}
 
 }
